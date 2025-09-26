@@ -2,7 +2,6 @@ import * as THREE from "three/webgpu";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 import { OrbitControls } from "three/examples/jsm/Addons.js";
-// Import TSL nodes
 import {
   color,
   float,
@@ -21,7 +20,7 @@ import {
   smoothstep,
 } from "three/tsl";
 
-// Scene setup
+// Setup scene
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
   75,
@@ -103,7 +102,6 @@ controls.enableDamping = true;
 camera.position.set(0, 0, 5);
 controls.update();
 
-// Animation loop with requestAnimationFrame
 function animate() {
   controls.update();
   renderer.render(scene, camera);
