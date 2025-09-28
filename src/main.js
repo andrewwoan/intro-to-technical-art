@@ -18,6 +18,8 @@ import {
   positionViewDirection,
   mix,
   smoothstep,
+  vec4,
+  vec2,
 } from "three/tsl";
 
 // Setup scene
@@ -46,17 +48,9 @@ directionalLight.shadow.mapSize.width = 2048;
 directionalLight.shadow.mapSize.height = 2048;
 // scene.add(directionalLight);
 
-const createCustomNodeMaterial = () => {
-  const p = positionLocal.toVar().y;
-
-  const material = new THREE.MeshBasicNodeMaterial();
-  material.colorNode = p;
-
-  return material;
-};
-
 // Create the custom material once to share between objects
-const sharedCustomMaterial = createCustomNodeMaterial();
+const sharedCustomMaterial = new THREE.MeshBasicNodeMaterial();
+sharedCustomMaterial.fragmentNode = vec3(positionLocal.x);
 
 // Setup DRACO loader
 const dracoLoader = new DRACOLoader();
@@ -85,10 +79,10 @@ gltfLoader.load("/models/Knight.glb", (gltf) => {
   scene.add(loadedModel);
 });
 
-const planeGeometry = new THREE.PlaneGeometry(1, 1);
+const planeGeometry = new THREE.PlaneGeometry(2, 2);
 // Use the same custom material instead of MeshLambertMaterial
 const plane = new THREE.Mesh(planeGeometry, sharedCustomMaterial);
-plane.position.x = -1;
+plane.position.x = -2;
 plane.receiveShadow = true;
 scene.add(plane);
 
