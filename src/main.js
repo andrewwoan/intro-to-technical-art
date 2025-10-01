@@ -21,6 +21,7 @@ import {
   vec4,
   vec2,
 } from "three/tsl";
+import { Fn } from "three/src/nodes/TSL.js";
 
 // Setup scene
 const scene = new THREE.Scene();
@@ -49,8 +50,14 @@ directionalLight.shadow.mapSize.height = 2048;
 // scene.add(directionalLight);
 
 // Create the custom material once to share between objects
+const fragmentShaderFunction = Fn(() => {
+  const finalColor = vec3(positionLocal.x);
+
+  return finalColor;
+});
+
 const sharedCustomMaterial = new THREE.MeshBasicNodeMaterial();
-sharedCustomMaterial.fragmentNode = vec3(positionLocal.x);
+sharedCustomMaterial.fragmentNode = fragmentShaderFunction();
 
 // Setup DRACO loader
 const dracoLoader = new DRACOLoader();
@@ -87,7 +94,7 @@ plane.receiveShadow = true;
 scene.add(plane);
 
 const axesHelper = new THREE.AxesHelper(50);
-scene.add(axesHelper);
+// scene.add(axesHelper);
 
 // Camera
 const controls = new OrbitControls(camera, renderer.domElement);
