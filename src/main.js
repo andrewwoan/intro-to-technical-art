@@ -20,6 +20,8 @@ import {
   smoothstep,
   vec4,
   vec2,
+  length,
+  step,
 } from "three/tsl";
 import { Fn } from "three/src/nodes/TSL.js";
 
@@ -50,10 +52,33 @@ directionalLight.shadow.mapSize.height = 2048;
 // scene.add(directionalLight);
 
 // Create the custom material once to share between objects
-const rotationAngle = float(Math.PI / 2); // 90 degrees - you can change this value
 
 const fragmentShaderFunction = Fn(() => {
-  const finalColor = vec3(positionLocal.x);
+  // const angle = float(-Math.PI / 4); // 45 degrees
+  // const cosA = cos(angle);
+  // const sinA = sin(angle);
+
+  // const rotatedX = positionLocal.x.mul(cosA).add(positionLocal.z.mul(sinA));
+
+  // const finalColor = vec3(rotatedX.add(0.2));
+
+  // return finalColor;
+
+  const correctedPosition = vec3(
+    positionLocal.x,
+    positionLocal.z,
+    positionLocal.y.negate()
+  );
+
+  const finalColor = vec3(0);
+
+  const color1 = vec3(1, 0, 0);
+  const color2 = vec3(0, 0, 1);
+
+  correctedPosition.assign(length(correctedPosition));
+  correctedPosition.assign(step(time, correctedPosition));
+
+  finalColor.assign(mix(color1, color2, correctedPosition));
 
   return finalColor;
 });
@@ -110,9 +135,6 @@ window.addEventListener("resize", () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
-
-  console.log(camera.position);
-  console.log(controls.target);
 });
 
 // Start the animation loop
