@@ -2,7 +2,7 @@
 
 **[Video](https://youtu.be/6NYtMRXgCjk)** | **[Live site](https://intro-to-technical-art.vercel.app/)**
 
-This repo contains code of an intro to technical art course with Shaders! Learn how to convert your 3D software shader node knowledge to Three.js Shading Language (TSL) shader nodes.
+This repo contains code for an intro to technical art course with shaders! Learn how to convert your 3D software shader node knowledge to Three.js Shading Language (TSL) shader nodes.
 
 ![Page screenshot](public/media/og-image.webp?raw=true "Page screenshot")
 
