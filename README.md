@@ -20,3 +20,4 @@ npm run dev
 # Inspo & Credits!!!
 
 - [Hollow Knight](https://www.hollowknight.com/)
+- [Minecraft](https://minecraft.wiki/w/Spider)
