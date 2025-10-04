@@ -25,6 +25,7 @@ import {
   step,
   uniform,
   If,
+  atan,
 } from "three/tsl";
 import { Fn } from "three/src/nodes/TSL.js";
 
@@ -124,18 +125,46 @@ function createCustomMaterial(angle, offset, scale, colorA, colorB) {
 //   return finalColor;
 // });
 
+// const planeFragmentShaderFunction = Fn(() => {
+//   const correctedPosition = vec3(
+//     positionLocal.x,
+//     positionLocal.z.negate(),
+//     positionLocal.y.negate()
+//   );
+
+//   const inRange = step(0.1, correctedPosition.y).mul(
+//     step(correctedPosition.y, 0.3)
+//   );
+
+//   const finalColor = mix(correctedPosition, vec3(1, 1, 1), inRange);
+
+//   return finalColor;
+// });
+
+// Random Placeholder
 const planeFragmentShaderFunction = Fn(() => {
   const correctedPosition = vec3(
     positionLocal.x,
     positionLocal.z.negate(),
     positionLocal.y.negate()
   );
+  const centeredPos = vec2(correctedPosition.x, correctedPosition.y);
 
-  const inRange = step(0.1, correctedPosition.y).mul(
-    step(correctedPosition.y, 0.3)
+  const angle = atan(centeredPos.y, centeredPos.x);
+  const radius = length(centeredPos);
+
+  const spiralFrequency = float(8.0);
+  const radiusFrequency = float(10.0);
+  const spiral = sin(
+    angle
+      .mul(spiralFrequency)
+      .add(radius.mul(radiusFrequency))
+      .sub(time.mul(2.0))
   );
 
-  const finalColor = mix(correctedPosition, vec3(1, 1, 1), inRange);
+  const blackAndWhiteColor = step(0.0, spiral);
+
+  const finalColor = vec3(blackAndWhiteColor);
 
   return finalColor;
 });
