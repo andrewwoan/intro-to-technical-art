@@ -24,6 +24,7 @@ import {
   length,
   step,
   uniform,
+  If,
 } from "three/tsl";
 import { Fn } from "three/src/nodes/TSL.js";
 
@@ -86,6 +87,43 @@ function createCustomMaterial(angle, offset, scale, colorA, colorB) {
   return material;
 }
 
+// Tip and tricks #1: Beware of the hidden coordinate calculations!
+// const planeFragmentShaderFunction = Fn(() => {
+//   const correctedPosition = vec3(
+//     positionLocal.x,
+//     positionLocal.z.negate(),
+//     positionLocal.y.negate()
+//   );
+
+//   correctedPosition.assign(correctedPosition.fract());
+//   correctedPosition.subAssign(0.5);
+//   correctedPosition.assign(length(correctedPosition));
+
+//   const finalColor = correctedPosition;
+
+//   return finalColor;
+// });
+
+// Tips and tricks #2: Try and avoid if statements as a general habit
+// const planeFragmentShaderFunction = Fn(() => {
+//   const correctedPosition = vec3(
+//     positionLocal.x,
+//     positionLocal.z.negate(),
+//     positionLocal.y.negate()
+//   );
+
+//   const finalColor = vec3(correctedPosition).toVar();
+
+//   If(
+//     correctedPosition.y.lessThan(0.3).and(correctedPosition.y.greaterThan(0.1)),
+//     () => {
+//       finalColor.assign(vec3(1, 1, 1));
+//     }
+//   );
+
+//   return finalColor;
+// });
+
 const planeFragmentShaderFunction = Fn(() => {
   const correctedPosition = vec3(
     positionLocal.x,
@@ -93,7 +131,11 @@ const planeFragmentShaderFunction = Fn(() => {
     positionLocal.y.negate()
   );
 
-  const finalColor = correctedPosition;
+  const inRange = step(0.1, correctedPosition.y).mul(
+    step(correctedPosition.y, 0.3)
+  );
+
+  const finalColor = mix(correctedPosition, vec3(1, 1, 1), inRange);
 
   return finalColor;
 });
