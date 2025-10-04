@@ -2,6 +2,8 @@ import * as THREE from "three/webgpu";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 import { OrbitControls } from "three/examples/jsm/Addons.js";
+import GUI from "lil-gui";
+
 import {
   color,
   float,
@@ -22,8 +24,12 @@ import {
   vec2,
   length,
   step,
+  uniform,
 } from "three/tsl";
 import { Fn } from "three/src/nodes/TSL.js";
+
+//Debugger
+// const gui = new GUI();
 
 // Setup scene
 const scene = new THREE.Scene();
@@ -51,40 +57,99 @@ directionalLight.shadow.mapSize.width = 2048;
 directionalLight.shadow.mapSize.height = 2048;
 // scene.add(directionalLight);
 
-// Create the custom material once to share between objects
+function createCustomMaterial(angle, offset, scale, colorA, colorB) {
+  const angleUniform = uniform(angle);
+  const offsetUniform = uniform(offset);
+  const scaleUniform = uniform(scale);
+  const colorAUniform = uniform(vec3(colorA.r, colorA.g, colorA.b));
+  const colorBUniform = uniform(vec3(colorB.r, colorB.g, colorB.b));
 
-const fragmentShaderFunction = Fn(() => {
-  // const angle = float(-Math.PI / 4); // 45 degrees
-  // const cosA = cos(angle);
-  // const sinA = sin(angle);
+  const fragmentShaderFunction = Fn(() => {
+    const cosA = cos(angleUniform);
+    const sinA = sin(angleUniform);
 
-  // const rotatedX = positionLocal.x.mul(cosA).add(positionLocal.z.mul(sinA));
+    const rotatedX = positionLocal.x.mul(cosA).add(positionLocal.z.mul(sinA));
 
-  // const finalColor = vec3(rotatedX.add(0.2));
+    const finalColor = mix(
+      colorAUniform,
+      colorBUniform,
+      rotatedX.add(offsetUniform).mul(scaleUniform)
+    );
 
-  // return finalColor;
+    return finalColor;
+  });
 
+  const material = new THREE.MeshBasicNodeMaterial();
+  material.fragmentNode = fragmentShaderFunction();
+
+  return material;
+}
+
+const planeFragmentShaderFunction = Fn(() => {
   const correctedPosition = vec3(
     positionLocal.x,
-    positionLocal.z,
+    positionLocal.z.negate(),
     positionLocal.y.negate()
   );
 
-  const finalColor = vec3(0);
-
-  const color1 = vec3(1, 0, 0);
-  const color2 = vec3(0, 0, 1);
-
-  correctedPosition.assign(length(correctedPosition));
-  correctedPosition.assign(step(time, correctedPosition));
-
-  finalColor.assign(mix(color1, color2, correctedPosition));
+  const finalColor = correctedPosition;
 
   return finalColor;
 });
 
-const sharedCustomMaterial = new THREE.MeshBasicNodeMaterial();
-sharedCustomMaterial.fragmentNode = fragmentShaderFunction();
+// Helper function to convert hex to RGB object
+function hexToRgb(hex) {
+  const color = new THREE.Color(hex);
+  return { r: color.r, g: color.g, b: color.b };
+}
+
+// Material configuration based on material name
+function getMaterialConfig(materialName) {
+  const name = materialName.toLowerCase();
+
+  if (name === "rock") {
+    return {
+      angle: 0, // 90 degrees
+      offset: 0,
+      scale: 0.6,
+      colorA: hexToRgb("#171415"),
+      colorB: hexToRgb("#4B4B4B"),
+    };
+  } else if (name === "rocks") {
+    return {
+      angle: Math.PI / 2,
+      offset: 0,
+      scale: 1,
+      colorA: hexToRgb("#282828"),
+      colorB: hexToRgb("#303030"),
+    };
+  } else if (name === "black_gradient") {
+    return {
+      angle: 0,
+      offset: 0,
+      scale: 0.2,
+      colorA: { r: 1.0, g: 0.0, b: 0.0 },
+      colorB: { r: 0.0, g: 0.0, b: 1.0 },
+    };
+  } else if (name === "stones") {
+    return {
+      angle: 0,
+      offset: -0.11,
+      scale: 0.4,
+      colorA: hexToRgb("#171415"),
+      colorB: hexToRgb("#4B4B4B"),
+    };
+  } else {
+    // Default values
+    return {
+      angle: 0,
+      offset: 0,
+      scale: 1,
+      colorA: { r: 1.0, g: 0.0, b: 0.0 },
+      colorB: { r: 0.0, g: 0.0, b: 1.0 },
+    };
+  }
+}
 
 // Setup DRACO loader
 const dracoLoader = new DRACOLoader();
@@ -96,13 +161,38 @@ gltfLoader.setDRACOLoader(dracoLoader);
 
 // Load the GLB model
 let loadedModel = null;
-gltfLoader.load("/models/Scene.glb", (gltf) => {
+gltfLoader.load("/models/Scene2.glb", (gltf) => {
   loadedModel = gltf.scene;
   loadedModel.position.set(0, 0, 0);
 
   loadedModel.traverse((child) => {
     if (child.isMesh) {
-      child.material = sharedCustomMaterial;
+      const meshName = child.name;
+      const materialName = child.material.name;
+
+      if (meshName === "Target_Mesh_Plane") {
+        const material = new THREE.MeshBasicNodeMaterial();
+        material.fragmentNode = planeFragmentShaderFunction();
+        child.material = material;
+      } else {
+        const name = materialName.toLowerCase();
+        if (
+          name === "rock" ||
+          name === "rocks" ||
+          name === "black_gradient" ||
+          name === "stones"
+        ) {
+          const config = getMaterialConfig(materialName);
+          child.material = createCustomMaterial(
+            config.angle,
+            config.offset,
+            config.scale,
+            config.colorA,
+            config.colorB
+          );
+        }
+        // Otherwise, keep the original material from the GLB
+      }
     }
   });
 
