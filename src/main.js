@@ -3,7 +3,6 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 import { OrbitControls } from "three/examples/jsm/Addons.js";
 import GUI from "lil-gui";
-
 import {
   color,
   float,
@@ -28,10 +27,10 @@ import {
 } from "three/tsl";
 import { Fn } from "three/src/nodes/TSL.js";
 
-//Debugger
+// Debugger ---------------------------------------------------------------
 // const gui = new GUI();
 
-// Setup scene
+// Scene ---------------------------------------------------------------
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
   35,
@@ -46,7 +45,7 @@ renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 document.body.appendChild(renderer.domElement);
 
-// Lighting
+// Lighting ---------------------------------------------------------------
 const ambientLight = new THREE.AmbientLight(0xffffff, 4);
 // scene.add(ambientLight);
 
@@ -56,6 +55,8 @@ directionalLight.castShadow = true;
 directionalLight.shadow.mapSize.width = 2048;
 directionalLight.shadow.mapSize.height = 2048;
 // scene.add(directionalLight);
+
+// Materials ---------------------------------------------------------------
 
 function createCustomMaterial(angle, offset, scale, colorA, colorB) {
   const angleUniform = uniform(angle);
@@ -97,19 +98,20 @@ const planeFragmentShaderFunction = Fn(() => {
   return finalColor;
 });
 
+// Utilities ---------------------------------------------------------------
+
 // Helper function to convert hex to RGB object
 function hexToRgb(hex) {
   const color = new THREE.Color(hex);
   return { r: color.r, g: color.g, b: color.b };
 }
 
-// Material configuration based on material name
 function getMaterialConfig(materialName) {
   const name = materialName.toLowerCase();
 
   if (name === "rock") {
     return {
-      angle: 0, // 90 degrees
+      angle: 0,
       offset: 0,
       scale: 0.6,
       colorA: hexToRgb("#171415"),
@@ -140,7 +142,6 @@ function getMaterialConfig(materialName) {
       colorB: hexToRgb("#4B4B4B"),
     };
   } else {
-    // Default values
     return {
       angle: 0,
       offset: 0,
@@ -151,15 +152,14 @@ function getMaterialConfig(materialName) {
   }
 }
 
-// Setup DRACO loader
+// Model Stuff ---------------------------------------------------------------
+
 const dracoLoader = new DRACOLoader();
 dracoLoader.setDecoderPath("/draco/");
 
-// Setup GLTF loader with DRACO
 const gltfLoader = new GLTFLoader();
 gltfLoader.setDRACOLoader(dracoLoader);
 
-// Load the GLB model
 let loadedModel = null;
 gltfLoader.load("/models/Scene2.glb", (gltf) => {
   loadedModel = gltf.scene;
@@ -191,7 +191,6 @@ gltfLoader.load("/models/Scene2.glb", (gltf) => {
             config.colorB
           );
         }
-        // Otherwise, keep the original material from the GLB
       }
     }
   });
@@ -199,33 +198,29 @@ gltfLoader.load("/models/Scene2.glb", (gltf) => {
   scene.add(loadedModel);
 });
 
-const axesHelper = new THREE.AxesHelper(50);
-// scene.add(axesHelper);
+// Camera ---------------------------------------------------------------
+camera.position.set(8.119320077462113, 3.0038308097924373, 0.686155944870028);
 
-// Camera
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
-
-camera.position.set(8.119320077462113, 3.0038308097924373, 0.686155944870028);
 controls.target.set(
   -1.4269950171849213,
   2.1410254465135656,
   0.07347907348960196
 );
-
 controls.update();
+
+// Animation Loop ---------------------------------------------------------------
 
 function animate() {
   controls.update();
   renderer.render(scene, camera);
 }
 
-// Handle window resize
 window.addEventListener("resize", () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-// Start the animation loop
 renderer.setAnimationLoop(animate);
