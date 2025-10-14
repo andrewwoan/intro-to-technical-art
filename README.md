@@ -15,7 +15,7 @@ npm run dev
 
 # Updates & Known Issues!!!
 
-- N/A | woops test push
+- N/A
 
 # Inspo & Credits!!!
 
